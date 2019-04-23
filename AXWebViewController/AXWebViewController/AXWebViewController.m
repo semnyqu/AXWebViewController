@@ -338,16 +338,18 @@ BOOL AX_WEB_VIEW_CONTROLLER_iOS10_0_AVAILABLE() { return AX_WEB_VIEW_CONTROLLER_
     
     [self setupSubviews];
     
-    if (_request) {
-        [self loadURLRequest:_request];
-    } else if (_URL) {
-        [self loadURL:_URL];
-    } else if (/*_baseURL && */_HTMLString) {
-        [self loadHTMLString:_HTMLString baseURL:_baseURL];
-    } else {
-        // Handle none resource case.
-        [self loadURL:[NSURL fileURLWithPath:kAX404NotFoundHTMLPath]];
-    }
+//    if (_request) {
+//        [self loadURLRequest:_request];
+//    } else if (_URL) {
+//        [self loadURL:_URL];
+//    } else if (/*_baseURL && */_HTMLString) {
+//        [self loadHTMLString:_HTMLString baseURL:_baseURL];
+//    } else {
+//        // Handle none resource case.
+//        [self loadURL:[NSURL fileURLWithPath:kAX404NotFoundHTMLPath]];
+//    }
+    
+    [self inner_loadRequest];
     
     // Config navigation item
     self.navigationItem.leftItemsSupplementBackButton = YES;
@@ -508,6 +510,8 @@ BOOL AX_WEB_VIEW_CONTROLLER_iOS10_0_AVAILABLE() { return AX_WEB_VIEW_CONTROLLER_
     [_webView removeObserver:self forKeyPath:@"scrollView.contentOffset"];
     [_webView removeObserver:self forKeyPath:@"title"];
     // [_webView.scrollView removeObserver:self forKeyPath:@"backgroundColor"];
+    
+    [self observationInfo];
 #else
     _webView.delegate = nil;
 #endif
@@ -655,7 +659,7 @@ BOOL AX_WEB_VIEW_CONTROLLER_iOS10_0_AVAILABLE() { return AX_WEB_VIEW_CONTROLLER_
 
 - (NSBundle *)resourceBundle{
     if (_resourceBundle) return _resourceBundle;
-    NSBundle *bundle = [NSBundle bundleForClass:AXWebViewController.class];
+    NSBundle *bundle = [NSBundle bundleForClass:[self class]];
     
     NSString *resourcePath = [bundle pathForResource:@"AXWebViewController" ofType:@"bundle"] ;
     
@@ -910,6 +914,29 @@ BOOL AX_WEB_VIEW_CONTROLLER_iOS10_0_AVAILABLE() { return AX_WEB_VIEW_CONTROLLER_
 - (void)setNavigationCloseItem:(UIBarButtonItem *)navigationCloseItem {
     _navigationCloseBarButtonItem = navigationCloseItem;
     [self updateNavigationItems];
+}
+
+#pragma mark - Protected
+//load 本地缓存默认页
+- (void)inner_loadDefault{
+    [self loadURL:[NSURL fileURLWithPath:kAX404NotFoundHTMLPath]];
+}
+
+- (void)inner_loadRequest{
+    [self inner_loadRequest2];
+}
+
+- (void)inner_loadRequest2{
+    if (_request) {
+        [self loadURLRequest:_request];
+    } else if (_URL) {
+        [self loadURL:_URL];
+    } else if (/*_baseURL && */_HTMLString) {
+        [self loadHTMLString:_HTMLString baseURL:_baseURL];
+    } else {
+        // Handle none resource case.
+        [self inner_loadDefault];
+    }
 }
 
 #pragma mark - Public
