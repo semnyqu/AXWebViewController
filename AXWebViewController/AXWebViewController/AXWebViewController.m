@@ -1991,7 +1991,7 @@ BOOL AX_WEB_VIEW_CONTROLLER_iOS10_0_AVAILABLE() { return AX_WEB_VIEW_CONTROLLER_
     
     float progress = self.progress;
     if (progress < 1) {
-        if (self.hidden) {
+        if (self.hidden && !self.ax_finished) {
             self.hidden = NO;
         }
     } else if (progress >= 1) {
@@ -2000,10 +2000,11 @@ BOOL AX_WEB_VIEW_CONTROLLER_iOS10_0_AVAILABLE() { return AX_WEB_VIEW_CONTROLLER_
         } completion:^(BOOL finished) {
             if (finished) {
                 self.hidden = YES;
+                self.ax_finished = YES;
                 self.progress = 0.0;
                 self.alpha = 1.0;
                 // Update the navigation itmes if the delegate is not being triggered.
-                if (self.ax_webViewController.navigationType == AXWebViewControllerNavigationBarItem) {
+                if (self.ax_webViewController.navigationType == SQWebViewControllerNavigationBarItem) {
                     [self.ax_webViewController updateNavigationItems];
                 } else {
                     [self.ax_webViewController updateToolbarItems];
@@ -2021,14 +2022,23 @@ BOOL AX_WEB_VIEW_CONTROLLER_iOS10_0_AVAILABLE() { return AX_WEB_VIEW_CONTROLLER_
     objc_setAssociatedObject(self, @selector(ax_hiddenWhenProgressApproachFullSize), @(ax_hiddenWhenProgressApproachFullSize), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
-- (AXWebViewController *)ax_webViewController {
+- (SQWebViewController *)ax_webViewController {
     return objc_getAssociatedObject(self, _cmd);
 }
 
-- (void)setAx_webViewController:(AXWebViewController *)ax_webViewController {
-    // Using assign to fix issue: https://github.com/devedbox/AXWebViewController/issues/23
+- (void)setAx_webViewController:(SQWebViewController *)ax_webViewController {
+    // Using assign to fix issue: https://github.com/devedbox/SQWebViewController/issues/23
     objc_setAssociatedObject(self, @selector(ax_webViewController), ax_webViewController, OBJC_ASSOCIATION_ASSIGN);
 }
+
+- (BOOL)ax_finished {
+    return [objc_getAssociatedObject(self, _cmd) boolValue];
+}
+
+- (void)setAx_finished:(BOOL)ax_finished {
+    objc_setAssociatedObject(self, @selector(ax_finished), @(ax_finished), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
 @end
 #endif
 #if !AX_WEB_VIEW_CONTROLLER_USING_WEBKIT
@@ -2037,7 +2047,7 @@ BOOL AX_WEB_VIEW_CONTROLLER_iOS10_0_AVAILABLE() { return AX_WEB_VIEW_CONTROLLER_
     [super setProgress:progress animated:animated];
     
     if (progress >= 1.0) {
-        if (_webViewController.navigationType == AXWebViewControllerNavigationBarItem) {
+        if (_webViewController.navigationType == SQWebViewControllerNavigationBarItem) {
             [_webViewController updateNavigationItems];
         } else {
             [_webViewController updateToolbarItems];
